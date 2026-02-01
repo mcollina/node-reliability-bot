@@ -46,6 +46,22 @@ Select the test with the **most failures** for maximum impact.
 
 If the test file was recently added or modified by a PR, the flakiness might be in that PR's changes, not in main. In that case, skip to the next test.
 
+### Reproducing the Flakiness
+
+**IMPORTANT**: Before attempting any fix, you must first reproduce the flakiness locally:
+
+```bash
+# Run the test repeatedly to reproduce the failure
+python3 tools/test.py --repeat 100 test/parallel/test-<name>.js
+```
+
+If the test passes consistently after many runs (100+), the flakiness may be:
+- Platform-specific (e.g., only fails on macOS, Windows ARM64, or specific CI environments)
+- Environment-specific (e.g., shared library builds, debug builds)
+- Already fixed in main
+
+**Do not attempt to fix a test if you cannot reproduce the flakiness.** Move on to the next test instead.
+
 ## Step 2: Prepare the Node.js Repository
 
 Before starting work, always ensure you're on a clean, up-to-date main branch:
