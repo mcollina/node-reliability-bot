@@ -32,6 +32,20 @@ The issue body contains markdown tables with test results. Look for patterns lik
 
 Select the test with the **most failures** for maximum impact.
 
+### Verifying the Failure is on Main
+
+**IMPORTANT**: Only fix tests that are flaky on the main branch. Before working on a test:
+
+1. Check the detailed failure report to see which PRs triggered the failure
+2. Verify the test exists and has the same code on main - the failure might be from a PR that changed the test
+3. Skip failures that are infrastructure issues, not actual flaky tests:
+   - `ENOSPC: no space left on device` - disk space issue on CI
+   - `Failed to trigger node-test-commit` - CI infrastructure issue
+   - `fatal: No rebase in progress?` - git issue on CI
+   - `Directory not empty` - cleanup issue on CI
+
+If the test file was recently added or modified by a PR, the flakiness might be in that PR's changes, not in main. In that case, skip to the next test.
+
 ## Step 2: Prepare the Node.js Repository
 
 Before starting work, always ensure you're on a clean, up-to-date main branch:
