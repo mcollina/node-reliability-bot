@@ -211,6 +211,7 @@ EOF
 
 - **Never sign commits as Claude** - Do not add `Co-Authored-By: Claude` or similar attribution lines
 - Follow Node.js commit message conventions (subsystem prefix, imperative mood)
+- **Always run linters before committing**: Run `make lint` or `make lint-js-fix` to check and fix lint errors
 - **Validate commits before pushing**: Run `npx core-validate-commit` to check commit format
   - Ignore errors about missing PR-URL (not available before PR is created)
   - Ignore errors about missing reviewers (added during review process)
