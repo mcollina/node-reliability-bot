@@ -207,6 +207,11 @@ EOF
 - CI must pass before landing
 - Wait 48 hours before landing (some PRs can be fast-tracked)
 
+### Commit Guidelines
+
+- **Never sign commits as Claude** - Do not add `Co-Authored-By: Claude` or similar attribution lines
+- Follow Node.js commit message conventions (subsystem prefix, imperative mood)
+
 ## Quick Reference Commands
 
 ```bash
