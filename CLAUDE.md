@@ -267,3 +267,72 @@ python3 tools/test.py --repeat 1000 test/parallel/test-<name>.js
 # Lint before committing
 make lint-js-fix
 ```
+
+## Key Learnings
+
+This section documents important lessons learned from fixing flaky tests.
+
+### Most Failures Are Not Reproducible Locally
+
+The majority of failures in reliability reports fall into these categories:
+
+1. **Infrastructure issues** (~40% of failures):
+   - `ENOSPC: no space left on device` - ARM64 debug nodes running out of disk
+   - `Failed to trigger node-test-commit` - CI job trigger failures
+   - `fatal: No rebase in progress?` - Git state issues on CI
+   - `Build timed out` - CI resource constraints
+
+2. **Platform-specific failures** (~40% of failures):
+   - macOS-only: watch mode tests, HTTP/2 timeouts, zlib chunk counts
+   - Windows-only: path casing issues, crypto timeouts
+   - ARM64-only: timing-sensitive tests on slower hardware
+
+3. **Actually fixable on Linux x64** (~20% of failures):
+   - These are the ones worth investigating
+
+### Checking the Detailed Report is Essential
+
+Always fetch the detailed markdown report to understand:
+- Which **platforms** failed (Linux x64 vs macOS vs Windows vs ARM64)
+- Which **PRs** triggered the failure (might be PR-specific, not main)
+- The **actual error message** (ENOSPC vs assertion vs timeout)
+
+```bash
+# Get detailed report
+https://raw.githubusercontent.com/nodejs/reliability/main/reports/YYYY-MM-DD.md
+```
+
+### Common Fixes That Worked
+
+1. **Race conditions with async operations**: Use `setImmediate()` or `process.nextTick()` to allow pending operations to complete before assertions.
+
+2. **File handle lifecycle issues**: Ensure file handles are properly closed before test cleanup/GC runs. Add explicit `closeHandle()` methods.
+
+3. **Platform-specific skips**: Some tests legitimately cannot work on certain platforms. Use `common.skip()`:
+   ```javascript
+   if (common.isAIX)
+     common.skip('AIX does not reliably capture syntax errors in watch mode');
+   ```
+
+4. **Case-insensitive path matching on Windows**: Use regex with `gi` flag for path replacements on Windows since drive letters can have different casing.
+
+### PR Lifecycle
+
+1. **Review process**: PRs need 2 approvals from Node.js collaborators
+2. **CI must pass**: All platforms must pass before merge
+3. **Time window**: After merge, the test still appears in reports for 1-2 days because reports cover a rolling window of CI runs
+4. **Address feedback promptly**: Reviewers often have good suggestions (e.g., removing unnecessary `process.nextTick()`, removing unused event emissions)
+
+### What NOT to Fix
+
+- Infrastructure failures (ENOSPC, CI triggers) - these need CI team attention
+- Platform-specific failures you can't reproduce - leave for maintainers with access to those platforms
+- Tests that pass 100+ times locally - the flakiness is environment-specific
+
+### Efficiency Tips
+
+1. **Check multiple days of reports** - some tests appear consistently, others are one-offs
+2. **Start with highest failure count** - more impact per fix
+3. **Run reproduction tests in parallel** with other investigation
+4. **Use `--repeat 50` first**, then `--repeat 1000` only for final verification
+5. **Read the test code AND the helper modules** (e.g., `test/common/*.js`) to understand the full picture
