@@ -336,3 +336,21 @@ https://raw.githubusercontent.com/nodejs/reliability/main/reports/YYYY-MM-DD.md
 3. **Run reproduction tests in parallel** with other investigation
 4. **Use `--repeat 50` first**, then `--repeat 1000` only for final verification
 5. **Read the test code AND the helper modules** (e.g., `test/common/*.js`) to understand the full picture
+
+### Always Run Linting Before Committing
+
+**CRITICAL**: Always run `make lint-js` before committing changes. Common lint issues:
+- Unused imports (e.g., removing code that used `os` but leaving `const os = require('os')`)
+- Trailing whitespace
+- Indentation inconsistencies
+- Line length violations
+
+```bash
+# Check for lint errors
+make lint-js
+
+# Auto-fix what can be fixed
+make lint-js-fix
+```
+
+Running the full linter takes time, so run it once before committing rather than after each edit.
